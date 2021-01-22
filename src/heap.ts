@@ -5,11 +5,11 @@ export class Heap<T = number> {
 
   constructor(cmp?: (lhs: T, rhs: T) => boolean) {
     this.cmp = cmp || ((lhs, rhs) => lhs < rhs);
-    this.data = [undefined];
+    this.data = new Array(1);
   }
 
   clear() {
-    this.data = [undefined];
+    this.data = new Array(1);
     this.size = 0;
   }
 

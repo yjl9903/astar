@@ -41,15 +41,21 @@ const circle = addCircle(Start.x, Start.y);
 bootstrap();
 
 function bootstrap() {
-  document.querySelector('#run').addEventListener('click', function () {
-    this.parentNode.removeChild(this);
-    setTimeout(() => {
-      run();
-    }, 0);
-  });
-  
+  const btn = document.querySelector('#run');
+  if (btn) {
+    btn.addEventListener('click', function () {
+      const parent = btn.parentNode;
+      if (parent) {
+        parent.removeChild(btn);
+      }
+      setTimeout(() => {
+        run();
+      }, 0);
+    });
+  }
+
   fabric.util.requestAnimFrame(renderAll);
-  
+
   function renderAll() {
     canvas.renderAll();
     fabric.util.requestAnimFrame(renderAll);
@@ -104,8 +110,8 @@ function unlight(i: number, j: number) {
 }
 
 function addBlock(x: number, y: number, fill: string = BlockColor) {
-  if (x < 0 || x >= Column) return;
-  if (y < 0 || y >= Row) return;
+  // if (x < 0 || x >= Column) return;
+  // if (y < 0 || y >= Row) return;
 
   const rect = new fabric.Rect({
     left: x * WIDTH + strokeWidth - 1,
@@ -126,8 +132,8 @@ interface IMoveCommand {
 }
 
 function addCircle(x: number, y: number) {
-  if (x < 0 || x >= Column) return;
-  if (y < 0 || y >= Row) return;
+  // if (x < 0 || x >= Column) return;
+  // if (y < 0 || y >= Row) return;
 
   light(x, y);
 
@@ -324,14 +330,17 @@ function run() {
     return false;
   }
 
-  dfs({
+  const findPath = dfs({
     x: Start.x,
     y: Start.y,
     distance: 0,
     val: H(Start.x, Start.y, 0),
   });
 
-  circle.start();
+  if (findPath) {
+    circle.start();
+  } else {
+  }
 
   // const heap = new Heap(cmp);
   // heap.push({

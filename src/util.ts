@@ -27,6 +27,6 @@ export function make2DFn<T>(
     );
 }
 
-export function easeLinear(t, b, c, d) {
+export function easeLinear(t: number, b: number, c: number, d: number) {
   return b + (t / d) * c;
 }

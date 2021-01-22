@@ -7,9 +7,11 @@
   "scripts": {
     "dev": "snowpack dev",
     "build": "snowpack build",
-    "format": "yarn prettier --write *.ts"
+    "format": "yarn prettier --write src/**/*.ts"
   },
   "devDependencies": {
+    "@snowpack/plugin-babel": "^2.1.6",
+    "@snowpack/plugin-typescript": "^1.2.1",
     "@types/fabric": "^4.2.1",
     "prettier": "^2.2.1",
     "snowpack": "^2.18.5"
