@@ -26,6 +26,9 @@ const End = {
 };
 
 const BaseVelocity = 150;
+
+const VelocityList = [0.5, 0.75, 1, 1.5, 3.0];
+const VelocityProbability = [0.1, 0.2, 0.4, 0.2, 0.1];
 // --- config ---
 
 const canvas = new fabric.StaticCanvas('canvas');
@@ -35,6 +38,8 @@ const map = make2D(Column, Row, false);
 renderGrid(Row, Column);
 
 const grid = make2DFn(Column, Row, (i, j) => addBlock(i, j, 'transparent'));
+
+const velocityEval = initVelocityEval();
 
 const circle = addCircle(Start.x, Start.y);
 
@@ -96,12 +101,80 @@ function renderGrid(Row: number, Column: number) {
   }
 }
 
+function initVelocityEval() {
+  const q: number[][] = [];
+  const dis = make2D(Column, Row, Number.MAX_VALUE);
+  for (let i = 0; i < Column; i++) {
+    for (let j = 0; j < Row; j++) {
+      if (map[i][j]) {
+        dis[i][j] = 0;
+        q.push([i, j]);
+      }
+    }
+  }
+  for (let i = 0; i < q.length; i++) {
+    const [ux, uy] = q[i];
+    for (const [dx, dy] of [
+      [-1, 0],
+      [1, 0],
+      [0, 1],
+      [0, -1]
+    ]) {
+      const x = ux + dx;
+      const y = uy + dy;
+      if (x < 0 || x >= Column || y < 0 || y >= Row) continue;
+      if (dis[x][y] > dis[ux][uy] + 1) {
+        dis[x][y] = dis[ux][uy] + 1;
+        q.push([x, y]);
+      }
+    }
+  }
+  
+  const distanceProbability: number[] = [];
+  for (let i = 0; i < Column; i++) {
+    for (let j = 0; j < Row; j++) {
+      while (distanceProbability.length - 1 < dis[i][j]) {
+        distanceProbability.push(0);
+      }
+      if (dis[i][j] > 0) {
+        distanceProbability[dis[i][j]]++;
+      }
+    }
+  }
+  for (let i = 0; i < distanceProbability.length; i++) {
+    distanceProbability[i] /= Row * Column - BlockNum;
+  }
+
+  const relation = make2DFn(distanceProbability.length, VelocityProbability.length, (i, j) => {
+    return Math.min(distanceProbability[i], VelocityProbability[j]);
+  });
+
+  const fn = (i: number, j: number) => {
+    const vec = relation[dis[i][j]];
+    return VelocityList[vec.reduce((pre, cur, id, array) => {
+      if (pre === -1 || array[pre] < cur) {
+        return id;
+      } else {
+        return pre;
+      }
+    }, -1)];
+  };
+
+  return {
+    dis,
+    distanceProbability,
+    relation,
+    eval: fn
+  };
+}
+
 function light(i: number, j: number) {
   grid[i][j].animate('fill', '#ccd9ea', {
     duration: BaseVelocity / 2,
     easing: easeLinear,
   });
 }
+
 function unlight(i: number, j: number) {
   grid[i][j].animate('fill', 'transparent', {
     duration: BaseVelocity / 2,
@@ -150,34 +223,38 @@ function addCircle(x: number, y: number) {
 
   const moveRight = () => {
     x++;
+    const velocity = velocityEval.eval(x, y);
     circle.animate('left', '+=' + WIDTH.toString(), {
       onComplete,
       easing: easeLinear,
-      duration: BaseVelocity,
+      duration: BaseVelocity * velocity,
     });
   };
   const moveLeft = () => {
     x--;
+    const velocity = velocityEval.eval(x, y);
     circle.animate('left', '-=' + WIDTH.toString(), {
       onComplete,
       easing: easeLinear,
-      duration: BaseVelocity,
+      duration: BaseVelocity * velocity,
     });
   };
   const moveUp = () => {
     y--;
+    const velocity = velocityEval.eval(x, y);
     circle.animate('top', '-=' + HEIGHT.toString(), {
       onComplete,
       easing: easeLinear,
-      duration: BaseVelocity,
+      duration: BaseVelocity * velocity,
     });
   };
   const moveDown = () => {
     y++;
+    const velocity = velocityEval.eval(x, y);
     circle.animate('top', '+=' + HEIGHT.toString(), {
       onComplete,
       easing: easeLinear,
-      duration: BaseVelocity,
+      duration: BaseVelocity * velocity,
     });
   };
 
@@ -186,17 +263,6 @@ function addCircle(x: number, y: number) {
 
   const push = (dir: string, isIn: boolean) => {
     history.push({ dir, isIn });
-    // if (next < history.length && history[history.length - 1].dir === dir) {
-    //   history[history.length - 1].count++;
-    // } else {
-    // }
-    // setTimeout(() => {
-    //   if (!inAnime) {
-    //     const dir = history[next].dir;
-    //     const count = history[next].count;
-    //     move(dir, count);
-    //   }
-    // }, 100);
   };
 
   function move({ dir, isIn }: IMoveCommand) {
@@ -341,38 +407,4 @@ function run() {
     circle.start();
   } else {
   }
-
-  // const heap = new Heap(cmp);
-  // heap.push({
-  //   x: Start.x, y: Start.y, distance: 0, val: H(Start.x, Start.y, 0)
-  // });
-  // while (!heap.empty()) {
-  //   const u = heap.pop();
-  //   if (u.pre) {
-  //     const dx = u.x - u.pre.x;
-  //     const dy = u.y - u.pre.y;
-  //     // console.log(dx, dy);
-  //     if (dx === -1) {
-  //       circle.moveLeft();
-  //     } else if (dx === 1) {
-  //       circle.moveRight();
-  //     } else if (dy === 1) {
-  //       circle.moveDown();
-  //     } else if (dy === -1) {
-  //       circle.moveUp();
-  //     }
-  //   }
-  //   if (u.x === End.x && u.y === End.y) {
-  //     break;
-  //   }
-  //   for (const [dx, dy] of [[-1, 0], [1, 0], [0, 1], [0, -1]]) {
-  //     const x = u.x + dx;
-  //     const y = u.y + dy;
-  //     console.log(x, y, check(x, y));
-  //     if (check(x, y)) {
-  //       const val = H(x, y, u.distance + 1);
-  //       heap.push({ x, y, distance: u.distance + 1, val, pre: u });
-  //     }
-  //   }
-  // }
 }
