@@ -1,6 +1,6 @@
 import { fabric } from 'fabric';
+import { Heap } from './heap';
 import { easeLinear, make2D, make2DFn, random } from './util';
-// import { Heap } from './heap';
 
 // --- config ---
 const HEIGHT = 25;
@@ -46,17 +46,30 @@ const circle = addCircle(Start.x, Start.y);
 bootstrap();
 
 function bootstrap() {
-  const btn = document.querySelector('#run');
-  if (btn) {
-    btn.addEventListener('click', function () {
-      const parent = btn.parentNode;
-      if (parent) {
-        parent.removeChild(btn);
-      }
-      setTimeout(() => {
-        run();
-      }, 0);
-    });
+  const runBtn = document.querySelector('#run') as Element;
+  const runShortestBtn = document.querySelector('#run-shortest') as Element;
+  
+  const handlerRun = () => {
+    setTimeout(() => {
+      clear();
+      run();
+    }, 0);
+  };
+
+  const handlerShortest = () => {
+    setTimeout(() => {
+      clear();
+      runShortest();
+    }, 0);
+  };
+
+  runBtn.addEventListener('click', handlerRun);
+
+  runShortestBtn.addEventListener('click', handlerShortest);
+
+  function clear() {
+    runBtn.removeEventListener('click', handlerRun);
+    runShortestBtn.removeEventListener('click', handlerShortest);
   }
 
   fabric.util.requestAnimFrame(renderAll);
@@ -322,9 +335,6 @@ interface Node {
 }
 
 function run() {
-  // const cmp = (lhs: Node, rhs: Node) => {
-  //   return lhs.val < rhs.val;
-  // };
   const H = (x: number, y: number, distance: number) => {
     return Math.abs(End.x - x) + Math.abs(End.y - y) + distance;
   };
@@ -406,5 +416,88 @@ function run() {
   if (findPath) {
     circle.start();
   } else {
+  }
+}
+
+function runShortest() {
+  const cmp = (lhs: Node, rhs: Node) => {
+    return lhs.val < rhs.val;
+  };
+  const H = (x: number, y: number, distance: number) => {
+    return Math.abs(End.x - x) + Math.abs(End.y - y) + distance;
+  };
+  const vis = make2D(Column, Row, false);
+  const check = (x: number, y: number) => {
+    if (x < 0 || x >= Column) return false;
+    if (y < 0 || y >= Row) return false;
+    return !vis[x][y] && !map[x][y];
+  };
+
+  const heap = new Heap(cmp);
+  heap.push({
+    x: Start.x, y: Start.y, distance: 0, val: H(Start.x, Start.y, 0)
+  });
+
+  while (!heap.empty()) {
+    const u = heap.pop();
+    vis[u.x][u.y] = true;
+    // if (u.pre) {
+    //   const dx = u.x - u.pre.x;
+    //   const dy = u.y - u.pre.y;
+    //   // console.log(dx, dy);
+    //   if (dx === -1) {
+    //     circle.moveLeft();
+    //   } else if (dx === 1) {
+    //     circle.moveRight();
+    //   } else if (dy === 1) {
+    //     circle.moveDown();
+    //   } else if (dy === -1) {
+    //     circle.moveUp();
+    //   }
+    // }
+    if (u.x === End.x && u.y === End.y) {
+      const routeReverse: string[] = [];
+      let x: Node = u;
+      while (true) {
+        const pre = x.pre;
+        if (pre !== undefined) {
+          const dx = x.x - pre.x;
+          const dy = x.y - pre.y;
+          if (dx === -1) {
+            routeReverse.push('L');
+          } else if (dx === 1) {
+            routeReverse.push('R');
+          } else if (dy === 1) {
+            routeReverse.push('D');
+          } else if (dy === -1) {
+            routeReverse.push('U');
+          }
+          x = pre;
+        } else {
+          break;
+        }
+      }
+      for (const dir of routeReverse.reverse()) {
+        if (dir === 'L') {
+          circle.moveLeft();
+        } else if (dir === 'R') {
+          circle.moveRight();
+        } else if (dir === 'D') {
+          circle.moveDown();
+        } else if (dir === 'U') {
+          circle.moveUp();
+        }
+      }
+      circle.start();
+      break;
+    }
+    for (const [dx, dy] of [[-1, 0], [1, 0], [0, 1], [0, -1]]) {
+      const x = u.x + dx;
+      const y = u.y + dy;
+      if (check(x, y)) {
+        const val = H(x, y, u.distance + 1);
+        heap.push({ x, y, distance: u.distance + 1, val, pre: u });
+      }
+    }
   }
 }
