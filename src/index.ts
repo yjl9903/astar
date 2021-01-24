@@ -441,20 +441,6 @@ function runShortest() {
   while (!heap.empty()) {
     const u = heap.pop();
     vis[u.x][u.y] = true;
-    // if (u.pre) {
-    //   const dx = u.x - u.pre.x;
-    //   const dy = u.y - u.pre.y;
-    //   // console.log(dx, dy);
-    //   if (dx === -1) {
-    //     circle.moveLeft();
-    //   } else if (dx === 1) {
-    //     circle.moveRight();
-    //   } else if (dy === 1) {
-    //     circle.moveDown();
-    //   } else if (dy === -1) {
-    //     circle.moveUp();
-    //   }
-    // }
     if (u.x === End.x && u.y === End.y) {
       const routeReverse: string[] = [];
       let x: Node = u;
