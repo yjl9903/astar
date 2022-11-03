@@ -7,8 +7,8 @@ import { easeLinear, make2D, make2DFn, random } from './util';
 const HEIGHT = 25;
 const WIDTH = 25;
 
-const Column = 20;
-const Row = 20;
+const Column = 21;
+const Row = 21;
 
 const strokeColor = '#ccd9ea';
 const strokeWidth = 2;
@@ -17,13 +17,13 @@ const BlockNum = 100;
 const BlockColor = '#800000';
 
 const Start = {
-  x: 0,
-  y: 0,
+  x: 1,
+  y: 1,
 };
 
 const End = {
-  x: Column - 1,
-  y: Row - 1,
+  x: Column - 2,
+  y: Row - 2,
 };
 
 const BaseVelocity = 150;
@@ -111,7 +111,7 @@ function renderGrid(Row: number, Column: number) {
   }
 }
 
-function generateMap() {
+function randomGenerateMap() {
   for (let i = 0; i < BlockNum; i++) {
     while (true) {
       let x = random(0, Column - 1);
@@ -121,6 +121,90 @@ function generateMap() {
       if (!map[x][y]) {
         map[x][y] = true;
         break;
+      }
+    }
+  }
+}
+
+function generateMap() {
+  interface QueueNode {
+    weight: number;
+    x: number;
+    y: number;
+    nxtx: number;
+    nxty: number;
+  }
+
+  const mp = make2D(Column, Row, 'g');
+  const dx = [-1, 1, 0, 0];
+  const dy = [0, 0, -1, 1];
+  const cmp = (lhs: QueueNode, rhs: QueueNode) => {
+    return lhs.weight < rhs.weight;
+  };
+  for (let j = 0; j < Column; j++) {
+    mp[0][j] = mp[Row - 1][j] = 'x';
+  }
+  for (let i = 0; i < Row; i++) {
+    mp[i][0] = mp[i][Column - 1] = 'x';
+  }
+  for (let i = 1; i + 1 < Row; i += 2) {
+    for (let j = 1; j + 1 < Column; j += 2) {
+      mp[i][j] = 'y';
+    }
+  }
+  const Q = new Heap(cmp);
+  let first_x = (random(0, 1023) % ((Row - 1) / 2)) * 2 + 1;
+  let first_y = (random(0, 1023) % ((Column - 1) / 2)) * 2 + 1;
+  mp[first_x][first_y] = 'r';
+  for (let k = 0; k < 4; k++) {
+    let nx = first_x + dx[k],
+      ny = first_y + dy[k];
+    if (mp[nx][ny] == 'g' && mp[nx + dx[k]][ny + dy[k]] == 'y') {
+      mp[nx][ny] = 'b';
+      Q.push({
+        weight: random(0, 1023),
+        x: nx,
+        y: ny,
+        nxtx: nx + dx[k],
+        nxty: ny + dy[k],
+      });
+    }
+  }
+  while (!Q.empty()) {
+    const u = Q.pop();
+    if (mp[u.nxtx][u.nxty] == 'y') {
+      mp[u.x][u.y] = mp[u.nxtx][u.nxty] = 'r';
+      for (let k = 0; k < 4; k++) {
+        let nx = u.nxtx + dx[k],
+          ny = u.nxty + dy[k];
+        if (mp[nx][ny] == 'g' && mp[nx + dx[k]][ny + dy[k]] == 'y') {
+          mp[nx][ny] = 'b';
+          Q.push({
+            weight: random(0, 1023),
+            x: nx,
+            y: ny,
+            nxtx: nx + dx[k],
+            nxty: ny + dy[k],
+          });
+        }
+      }
+    } else {
+      mp[u.x][u.y] = 'g';
+    }
+  }
+  const emptyx = [];
+  const emptyy = [];
+  for (let i = 0; i < Row; i++) {
+    for (let j = 0; j < Column; j++) {
+      if (mp[i][j] == 'g') {
+        mp[i][j] = 'x';
+      } else if (mp[i][j] == 'r') {
+        mp[i][j] = '.';
+        emptyx.push(i);
+        emptyy.push(j);
+      }
+      if (mp[i][j] == 'x') {
+        map[i][j] = true;
       }
     }
   }
