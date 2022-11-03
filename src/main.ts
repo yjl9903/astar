@@ -1,4 +1,5 @@
 import { fabric } from 'fabric';
+
 import { Heap } from './heap';
 import { easeLinear, make2D, make2DFn, random } from './util';
 
@@ -48,7 +49,7 @@ bootstrap();
 function bootstrap() {
   const runBtn = document.querySelector('#run') as Element;
   const runShortestBtn = document.querySelector('#run-shortest') as Element;
-  
+
   const handlerRun = () => {
     setTimeout(() => {
       clear();
@@ -131,7 +132,7 @@ function initVelocityEval() {
       [-1, 0],
       [1, 0],
       [0, 1],
-      [0, -1]
+      [0, -1],
     ]) {
       const x = ux + dx;
       const y = uy + dy;
@@ -142,7 +143,7 @@ function initVelocityEval() {
       }
     }
   }
-  
+
   const distanceProbability: number[] = [];
   for (let i = 0; i < Column; i++) {
     for (let j = 0; j < Row; j++) {
@@ -158,26 +159,32 @@ function initVelocityEval() {
     distanceProbability[i] /= Row * Column - BlockNum;
   }
 
-  const relation = make2DFn(distanceProbability.length, VelocityProbability.length, (i, j) => {
-    return Math.min(distanceProbability[i], VelocityProbability[j]);
-  });
+  const relation = make2DFn(
+    distanceProbability.length,
+    VelocityProbability.length,
+    (i, j) => {
+      return Math.min(distanceProbability[i], VelocityProbability[j]);
+    }
+  );
 
   const fn = (i: number, j: number) => {
     const vec = relation[dis[i][j]];
-    return VelocityList[vec.reduce((pre, cur, id, array) => {
-      if (pre === -1 || array[pre] < cur) {
-        return id;
-      } else {
-        return pre;
-      }
-    }, -1)];
+    return VelocityList[
+      vec.reduce((pre, cur, id, array) => {
+        if (pre === -1 || array[pre] < cur) {
+          return id;
+        } else {
+          return pre;
+        }
+      }, -1)
+    ];
   };
 
   return {
     dis,
     distanceProbability,
     relation,
-    eval: fn
+    eval: fn,
   };
 }
 
@@ -435,7 +442,10 @@ function runShortest() {
 
   const heap = new Heap(cmp);
   heap.push({
-    x: Start.x, y: Start.y, distance: 0, val: H(Start.x, Start.y, 0)
+    x: Start.x,
+    y: Start.y,
+    distance: 0,
+    val: H(Start.x, Start.y, 0),
   });
 
   while (!heap.empty()) {
@@ -477,7 +487,12 @@ function runShortest() {
       circle.start();
       break;
     }
-    for (const [dx, dy] of [[-1, 0], [1, 0], [0, 1], [0, -1]]) {
+    for (const [dx, dy] of [
+      [-1, 0],
+      [1, 0],
+      [0, 1],
+      [0, -1],
+    ]) {
       const x = u.x + dx;
       const y = u.y + dy;
       if (check(x, y)) {

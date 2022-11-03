@@ -3,17 +3,17 @@
 ## Installation
 
 ```bash
-yarn install
+pnpm install
 ```
 
 ## Usage
 
 ```bash
-yarn dev
+pnpm dev
 ```
 
 ## Build
 
 ```bash
-yarn build
+pnpm build
 ```
