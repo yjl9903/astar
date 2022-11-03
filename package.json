@@ -1,13 +1,13 @@
 {
   "name": "astar",
-  "version": "1.0.0",
+  "version": "0.0.0",
+  "private": true,
   "license": "MIT",
   "author": "XLor",
-  "main": "index.js",
   "scripts": {
     "build": "snowpack build",
     "dev": "snowpack dev",
-    "format": "yarn prettier --write src/**/*.ts"
+    "format": "prettier --write src/**/*.ts"
   },
   "dependencies": {
     "fabric": "^4.3.0"
