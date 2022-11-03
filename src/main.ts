@@ -3,12 +3,14 @@ import { fabric } from 'fabric';
 import { Heap } from './heap';
 import { easeLinear, make2D, make2DFn, random } from './util';
 
-// --- config ---
-const HEIGHT = 25;
-const WIDTH = 25;
+const params = new URLSearchParams(window.location.search);
 
-const Column = 21;
-const Row = 21;
+// --- config ---
+const HEIGHT = +(params.get('size') ?? 25);
+const WIDTH = +(params.get('size') ?? 25);
+
+const Column = +(params.get('map') ?? 21);
+const Row = +(params.get('map') ?? 21);
 
 const strokeColor = '#ccd9ea';
 const strokeWidth = 2;
