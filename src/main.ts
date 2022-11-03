@@ -100,6 +100,18 @@ function renderGrid(Row: number, Column: number) {
     );
   }
 
+  generateMap();
+
+  for (let i = 0; i < Column; i++) {
+    for (let j = 0; j < Row; j++) {
+      if (map[i][j]) {
+        addBlock(i, j);
+      }
+    }
+  }
+}
+
+function generateMap() {
   for (let i = 0; i < BlockNum; i++) {
     while (true) {
       let x = random(0, Column - 1);
@@ -108,7 +120,6 @@ function renderGrid(Row: number, Column: number) {
       if (x === End.x && y === End.y) continue;
       if (!map[x][y]) {
         map[x][y] = true;
-        addBlock(x, y);
         break;
       }
     }
